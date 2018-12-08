@@ -16,6 +16,11 @@ namespace MKI
     public:
         explicit ImageFile(const std::string& file);
 
+        const Image& image() const { return m_images.back(); }
+        Image& mutableImage() { return m_images.back(); }
+        FS::path path() const { return m_path; };
+        FileType filetype() const { return m_filetype; }
+
         bool load(const std::string& file);
         bool save(const std::string& file, const std::string& comment = "");
         bool saveCopy(const std::string& comment = "");
@@ -28,8 +33,8 @@ namespace MKI
         bool loadBin(std::ifstream& in);
         bool loadText(std::ifstream& in);
 
-        bool saveBin();
-        bool saveText();
+        bool saveBin(const FS::path& file, const std::string& comment);
+        bool saveText(const FS::path& file, const std::string& comment);
 
     private:
         std::vector<Image> m_images;

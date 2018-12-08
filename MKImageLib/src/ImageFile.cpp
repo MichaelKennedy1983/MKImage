@@ -60,8 +60,54 @@ namespace MKI
         return true;
     }
 
-    bool save(const std::string& file, const std::string& comment = "");
-    bool saveCopy(const std::string& comment = "");
+    bool ImageFile::save(const std::string& file, const std::string& comment) {
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        std::cout << "\nSaving: " << file << ".\n";
+
+        FS::path out_path(m_path.parent_path());
+        out_path.append(Globals::default_image_out_dir);
+
+        if (!FS::exists(out_path)) {
+            FS::create_directory(out_path);
+        }
+
+        out_path.append(file);
+
+        if (m_filetype == FileType::FType::P2) {
+            saveText(out_path, comment);
+        } else if (m_filetype == FileType::FType::P5) {
+            saveBin(out_path, comment);
+        } else {
+            std::cout << file << " failed to save. Unsupported file type.\n";
+            return false;
+        }
+
+        std::chrono::duration<double> duration =
+            std::chrono::high_resolution_clock::now() - start_time;
+        std::cout << file << " saved successfully in " << duration.count()
+            << " seconds.\n";
+        
+        return true;
+    }
+
+    bool ImageFile::saveCopy(const std::string& comment)
+    {
+        std::string out_name(m_path.filename().generic_string());
+        size_t pos = out_name.find_last_of('.');
+
+        if (pos != std::string::npos) {
+            out_name.insert(pos, "_COPY");
+        } else {
+            out_name.append("_COPY.pgm");
+        }
+
+        save(out_name, comment);
+    }
+
+    /*
+        #################### Private Methods #################### 
+    */
 
     bool ImageFile::readHeader(std::ifstream& in)
     {
@@ -70,7 +116,9 @@ namespace MKI
             skipComment(in);
             in >> m_images.back().m_columns;
             in >> m_images.back().m_rows;
-            in >> m_images.back().m_depth;
+            int depth;
+            in >> depth;
+            m_images.back().m_depth = depth;
 
             return true;
         }
@@ -110,8 +158,8 @@ namespace MKI
         pixels = ImagePixels(m_images.back().rows(), 
             std::vector<uint8_t>(m_images.back().columns()));
 
-        for (auto& columns : pixels) {
-            for (auto& pix : columns) {
+        for (auto& column : pixels) {
+            for (auto& pix : column) {
                 in.read(reinterpret_cast<char*>(&pix), sizeof(uint8_t));
             }
         }
@@ -125,15 +173,63 @@ namespace MKI
         pixels = ImagePixels(m_images.back().rows(), 
             std::vector<uint8_t>(m_images.back().columns()));
 
-        for (auto& columns : pixels) {
-            for (auto& pix : columns) {
-                in >> pix;
+        for (auto& column : pixels) {
+            for (auto& pix : column) {
+                int temp;
+                in >> temp;
+                pix = temp;
             }
         }
 
         return true;
     }
 
-    bool saveBin();
-    bool saveText();
+    bool ImageFile::saveBin(const FS::path& file, const std::string& comment)
+    {
+        std::ofstream out;
+
+        out.open(file, std::ios::binary);
+
+        if (out.is_open()) {
+            out << m_filetype << '\n';
+            if (comment.length() > 0) {
+                out << "# " << comment << '\n';
+            }
+            out << image().m_columns << ' ' << image().m_rows << '\n';
+            out << static_cast<int>(image().m_depth) << '\n';
+
+            for (const auto& column : image().m_pixels) {
+                for (auto pix : column) {
+                    out.write(reinterpret_cast<char*>(&pix), sizeof(uint8_t));
+                }
+            }
+        }
+
+        return true;
+    }
+
+    bool ImageFile::saveText(const FS::path& file, const std::string& comment)
+    {
+        std::ofstream out;
+
+        out.open(file);
+
+        if (out.is_open()) {
+            out << m_filetype << '\n';
+            if (comment.length() > 0) {
+                out << "# " << comment << '\n';
+            }
+            out << image().m_columns << ' ' << image().m_rows << '\n';
+            out << static_cast<int>(image().m_depth) << '\n';
+
+            for (const auto& column : image().m_pixels) {
+                for (int pix : column) {
+                    out << pix << ' ';
+                }
+                out << '\n';
+            }
+        }
+
+        return true;
+    }
 }
