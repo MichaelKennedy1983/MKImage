@@ -2,8 +2,13 @@
 
 #include <string>
 
-namespace MKI::Globals
+namespace MKI
 {
-    std::string default_image_dir = "img";
-    std::string default_image_out_dir = "out";
+    class Globals
+    {
+    public:
+        static std::string default_image_dir;
+        static std::string default_image_out_dir;
+        static size_t threads_used;
+    };  
 }

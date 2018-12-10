@@ -102,7 +102,7 @@ namespace MKI
             out_name.append("_COPY.pgm");
         }
 
-        save(out_name, comment);
+        return save(out_name, comment);
     }
 
     /*

@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <type_traits>
 
 namespace MKI
 {
@@ -16,10 +17,12 @@ namespace MKI
     public:
         explicit ImageFile(const std::string& file);
 
-        const Image& image() const { return m_images.back(); }
         Image& mutableImage() { return m_images.back(); }
+        const Image& image() const { return m_images.back(); }
         FS::path path() const { return m_path; };
         FileType filetype() const { return m_filetype; }
+
+        void add(Image&& image) { m_images.push_back(image); }
 
         bool load(const std::string& file);
         bool save(const std::string& file, const std::string& comment = "");

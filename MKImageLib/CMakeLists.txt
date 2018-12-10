@@ -2,6 +2,8 @@ set(lib_src
     src/ImageFile.cpp
     src/FileType.cpp
     src/Image.cpp
+    src/Interpolation.cpp
+    src/Globals.cpp
 )
 
 add_library(MKImageLib ${lib_src})
