@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ImageDefs.h"
+
 #include <vector>
 #include <cstdint>
 #include <unordered_map>
@@ -7,10 +9,7 @@
 #include <string>
 
 namespace MKI {
-
     class Image;
-    using ImagePixels = std::vector< std::vector<uint8_t> >;
-
 }
 
 namespace MKI::Interpolation
@@ -29,14 +28,14 @@ namespace MKI::Interpolation
         void operator()(double ratio_height, double ratio_width);
 
     private:
-        std::function<uint8_t(size_t, size_t, double, double)> getAlgorithm();
+        std::function<Pixel(size_t, size_t, double, double)> getAlgorithm();
 
-        uint8_t rangeCheckedPixelVal(size_t row, size_t column);
+        Pixel rangeCheckedPixelVal(size_t row, size_t column);
         double cubicHermite(double a, double b, double c, double d, double t);
 
-        uint8_t nearestNeighbor(size_t row, size_t column, double ratio_height, double ratio_width);
-        uint8_t bilinear(size_t row, size_t column, double ratio_height, double ratio_width);
-        uint8_t bicubic(size_t row, size_t column, double ratio_height, double ratio_width);
+        Pixel nearestNeighbor(size_t row, size_t column, double ratio_height, double ratio_width);
+        Pixel bilinear(size_t row, size_t column, double ratio_height, double ratio_width);
+        Pixel bicubic(size_t row, size_t column, double ratio_height, double ratio_width);
 
     private:
         const Image* m_in_image;

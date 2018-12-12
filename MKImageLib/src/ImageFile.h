@@ -19,9 +19,11 @@ namespace MKI
 
         Image& mutableImage() { return m_images.back(); }
         const Image& image() const { return m_images.back(); }
+        const Image& originImage() const { return m_images.front(); }
         FS::path path() const { return m_path; };
         FileType filetype() const { return m_filetype; }
 
+        void add(Image& image) { m_images.push_back(image); }
         void add(Image&& image) { m_images.push_back(image); }
 
         bool load(const std::string& file);

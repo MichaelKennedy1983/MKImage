@@ -48,72 +48,35 @@ namespace MKI::Interpolation
     /*
         #################### Private Methods #################### 
     */
-
-    // std::function<uint8_t(size_t, size_t, double, double)> ScalingFunct::getAlgorithm()
-    // {
-    //     using namespace std::placeholders;
-    //     switch (m_algorithm) {
-    //     case Algorithm::nearest_neighbor:
-    //         return std::bind(&ScalingFunct::nearestNeighbor, this, _1, _2, _3, _4);
-            
-    //     case Algorithm::bilinear:
-    //         return std::bind(&ScalingFunct::bilinear, this, _1, _2, _3, _4);
-
-    //     case Algorithm::bicubic:
-    //         return std::bind(&ScalingFunct::bicubic, this, _1, _2, _3, _4);
-
-    //     case Algorithm::unknown:
-    //         return [](size_t, size_t, double, double)
-    //             -> uint8_t
-    //         {
-    //             return uint8_t();
-    //         };
-    //     }
-    // }
-    std::function<uint8_t(size_t, size_t, double, double)> ScalingFunct::getAlgorithm()
+   
+    std::function<Pixel(size_t, size_t, double, double)> ScalingFunct::getAlgorithm()
     {
         switch (m_algorithm) {
         case Algorithm::nearest_neighbor:
             return [this](size_t row, size_t column, double ratio_height, double ratio_width)
-                -> uint8_t
+                -> Pixel
             {
                 size_t row_index = std::floor(row * ratio_height);
                 size_t column_index = std::floor(column * ratio_width);
 
-                uint8_t val = m_in_image->pixels().at(row_index).at(column_index);
+                Pixel val = m_in_image->pixels().at(row_index).at(column_index);
                 return val;
             };
         case Algorithm::bilinear:
             return [this](size_t row, size_t column, double ratio_height, double ratio_width)
-                -> uint8_t
+                -> Pixel
             {
-                double row_adjust;
-                if (ratio_height > 1.0) {
-                    row_adjust = -0.5;
-                } else if (ratio_height < 1.0) {
-                    row_adjust = 0.5;
-                } else {
-                    row_adjust = 0.0;
-                }
-                double column_adjust;
-                if (ratio_width > 1.0) {
-                    column_adjust = -0.5;
-                } else if (ratio_width < 1.0) {
-                    column_adjust = 0.5;
-                } else {
-                    column_adjust = 0.0;
-                }
-                double row_floating = row * ratio_height + row_adjust;
-                double column_floating = column * ratio_width + column_adjust;
+                double row_floating = row * ratio_height;
+                double column_floating = column * ratio_width;
                 size_t row_index = std::floor(row_floating);
                 size_t column_index = std::floor(column_floating);
                 double row_offset = row_floating - row_index;
                 double column_offset = column_floating - column_index;
 
-                uint8_t a = rangeCheckedPixelVal(row_index, column_index);
-                uint8_t b = rangeCheckedPixelVal(row_index, column_index + 1);
-                uint8_t c = rangeCheckedPixelVal(row_index + 1, column_index);
-                uint8_t d = rangeCheckedPixelVal(row_index + 1, column_index + 1);
+                Pixel a = rangeCheckedPixelVal(row_index, column_index);
+                Pixel b = rangeCheckedPixelVal(row_index, column_index + 1);
+                Pixel c = rangeCheckedPixelVal(row_index + 1, column_index);
+                Pixel d = rangeCheckedPixelVal(row_index + 1, column_index + 1);
 
                 double val =
                     a * (1 - row_offset) * (1 - column_offset) +
@@ -125,7 +88,7 @@ namespace MKI::Interpolation
             };
         case Algorithm::bicubic:
             return [this](size_t row, size_t column, double ratio_height, double ratio_width)
-                -> uint8_t
+                -> Pixel
             {
                 double row_floating = row * ratio_height;
                 double column_floating = column * ratio_width;
@@ -134,25 +97,25 @@ namespace MKI::Interpolation
                 double row_offset = row_floating - row_index;
                 double column_offset = column_floating - column_index;
 
-                uint8_t p00 = rangeCheckedPixelVal(row_index - 1, column_index - 1);
-                uint8_t p01 = rangeCheckedPixelVal(row_index - 1, column_index + 0);
-                uint8_t p02 = rangeCheckedPixelVal(row_index - 1, column_index + 1);
-                uint8_t p03 = rangeCheckedPixelVal(row_index - 1, column_index + 2);
+                Pixel p00 = rangeCheckedPixelVal(row_index - 1, column_index - 1);
+                Pixel p01 = rangeCheckedPixelVal(row_index - 1, column_index + 0);
+                Pixel p02 = rangeCheckedPixelVal(row_index - 1, column_index + 1);
+                Pixel p03 = rangeCheckedPixelVal(row_index - 1, column_index + 2);
 
-                uint8_t p10 = rangeCheckedPixelVal(row_index + 0, column_index - 1);
-                uint8_t p11 = rangeCheckedPixelVal(row_index + 0, column_index + 0);
-                uint8_t p12 = rangeCheckedPixelVal(row_index + 0, column_index + 1);
-                uint8_t p13 = rangeCheckedPixelVal(row_index + 0, column_index + 2);
+                Pixel p10 = rangeCheckedPixelVal(row_index + 0, column_index - 1);
+                Pixel p11 = rangeCheckedPixelVal(row_index + 0, column_index + 0);
+                Pixel p12 = rangeCheckedPixelVal(row_index + 0, column_index + 1);
+                Pixel p13 = rangeCheckedPixelVal(row_index + 0, column_index + 2);
 
-                uint8_t p20 = rangeCheckedPixelVal(row_index + 1, column_index - 1);
-                uint8_t p21 = rangeCheckedPixelVal(row_index + 1, column_index + 0);
-                uint8_t p22 = rangeCheckedPixelVal(row_index + 1, column_index + 1);
-                uint8_t p23 = rangeCheckedPixelVal(row_index + 1, column_index + 2);
+                Pixel p20 = rangeCheckedPixelVal(row_index + 1, column_index - 1);
+                Pixel p21 = rangeCheckedPixelVal(row_index + 1, column_index + 0);
+                Pixel p22 = rangeCheckedPixelVal(row_index + 1, column_index + 1);
+                Pixel p23 = rangeCheckedPixelVal(row_index + 1, column_index + 2);
 
-                uint8_t p30 = rangeCheckedPixelVal(row_index + 2, column_index - 1);
-                uint8_t p31 = rangeCheckedPixelVal(row_index + 2, column_index + 0);
-                uint8_t p32 = rangeCheckedPixelVal(row_index + 2, column_index + 1);
-                uint8_t p33 = rangeCheckedPixelVal(row_index + 2, column_index + 2);
+                Pixel p30 = rangeCheckedPixelVal(row_index + 2, column_index - 1);
+                Pixel p31 = rangeCheckedPixelVal(row_index + 2, column_index + 0);
+                Pixel p32 = rangeCheckedPixelVal(row_index + 2, column_index + 1);
+                Pixel p33 = rangeCheckedPixelVal(row_index + 2, column_index + 2);
 
                 double row1 = cubicHermite(p00, p01, p02, p03, column_offset);
                 double row2 = cubicHermite(p10, p11, p12, p13, column_offset);
@@ -166,14 +129,14 @@ namespace MKI::Interpolation
             };
         case Algorithm::unknown:
             return [](size_t, size_t, double, double)
-                -> uint8_t
+                -> Pixel
             {
-                return uint8_t();
+                return Pixel();
             };
         }
     }
 
-    uint8_t ScalingFunct::rangeCheckedPixelVal(size_t row, size_t column)
+    Pixel ScalingFunct::rangeCheckedPixelVal(size_t row, size_t column)
     {
         size_t row_clamped = std::clamp(row, size_t(0), m_in_image->rows() - 1);
         size_t column_clamped = std::clamp(column, size_t(0) , m_in_image->columns() - 1);
@@ -191,16 +154,16 @@ namespace MKI::Interpolation
         return aa*t*t*t + bb*t*t + cc*t + dd;
     }
 
-    uint8_t ScalingFunct::nearestNeighbor(size_t row, size_t column, double ratio_height, double ratio_width)
+    Pixel ScalingFunct::nearestNeighbor(size_t row, size_t column, double ratio_height, double ratio_width)
     {
         size_t row_index = std::floor(row * ratio_height);
         size_t column_index = std::floor(column * ratio_width);
 
-        uint8_t val = m_in_image->pixels().at(row_index).at(column_index);
+        Pixel val = m_in_image->pixels().at(row_index).at(column_index);
         return val;
     }
 
-    uint8_t ScalingFunct::bilinear(size_t row, size_t column, double ratio_height, double ratio_width)
+    Pixel ScalingFunct::bilinear(size_t row, size_t column, double ratio_height, double ratio_width)
     {
         double row_adjust;
         if (ratio_height > 1.0) {
@@ -225,10 +188,10 @@ namespace MKI::Interpolation
         double row_offset = row_floating - row_index;
         double column_offset = column_floating - column_index;
 
-        uint8_t a = rangeCheckedPixelVal(row_index, column_index);
-        uint8_t b = rangeCheckedPixelVal(row_index, column_index + 1);
-        uint8_t c = rangeCheckedPixelVal(row_index + 1, column_index);
-        uint8_t d = rangeCheckedPixelVal(row_index + 1, column_index + 1);
+        Pixel a = rangeCheckedPixelVal(row_index, column_index);
+        Pixel b = rangeCheckedPixelVal(row_index, column_index + 1);
+        Pixel c = rangeCheckedPixelVal(row_index + 1, column_index);
+        Pixel d = rangeCheckedPixelVal(row_index + 1, column_index + 1);
 
         double val =
             a * (1 - row_offset) * (1 - column_offset) +
@@ -236,11 +199,11 @@ namespace MKI::Interpolation
             c * row_offset * (1 - column_offset) +
             d * row_offset * column_offset;
 
-        uint8_t result = std::floor(val);
+        Pixel result = std::floor(val);
         return result;
     }
 
-    uint8_t ScalingFunct::bicubic(size_t row, size_t column, double ratio_height, double ratio_width)
+    Pixel ScalingFunct::bicubic(size_t row, size_t column, double ratio_height, double ratio_width)
     {
         double row_floating = row * ratio_height;
         double column_floating = column * ratio_width;
@@ -249,25 +212,25 @@ namespace MKI::Interpolation
         double row_offset = row_floating - row_index;
         double column_offset = column_floating - column_index;
 
-        uint8_t p00 = rangeCheckedPixelVal(row_index - 1, column_index - 1);
-        uint8_t p01 = rangeCheckedPixelVal(row_index - 1, column_index + 0);
-        uint8_t p02 = rangeCheckedPixelVal(row_index - 1, column_index + 1);
-        uint8_t p03 = rangeCheckedPixelVal(row_index - 1, column_index + 2);
+        Pixel p00 = rangeCheckedPixelVal(row_index - 1, column_index - 1);
+        Pixel p01 = rangeCheckedPixelVal(row_index - 1, column_index + 0);
+        Pixel p02 = rangeCheckedPixelVal(row_index - 1, column_index + 1);
+        Pixel p03 = rangeCheckedPixelVal(row_index - 1, column_index + 2);
 
-        uint8_t p10 = rangeCheckedPixelVal(row_index + 0, column_index - 1);
-        uint8_t p11 = rangeCheckedPixelVal(row_index + 0, column_index + 0);
-        uint8_t p12 = rangeCheckedPixelVal(row_index + 0, column_index + 1);
-        uint8_t p13 = rangeCheckedPixelVal(row_index + 0, column_index + 2);
+        Pixel p10 = rangeCheckedPixelVal(row_index + 0, column_index - 1);
+        Pixel p11 = rangeCheckedPixelVal(row_index + 0, column_index + 0);
+        Pixel p12 = rangeCheckedPixelVal(row_index + 0, column_index + 1);
+        Pixel p13 = rangeCheckedPixelVal(row_index + 0, column_index + 2);
 
-        uint8_t p20 = rangeCheckedPixelVal(row_index + 1, column_index - 1);
-        uint8_t p21 = rangeCheckedPixelVal(row_index + 1, column_index + 0);
-        uint8_t p22 = rangeCheckedPixelVal(row_index + 1, column_index + 1);
-        uint8_t p23 = rangeCheckedPixelVal(row_index + 1, column_index + 2);
+        Pixel p20 = rangeCheckedPixelVal(row_index + 1, column_index - 1);
+        Pixel p21 = rangeCheckedPixelVal(row_index + 1, column_index + 0);
+        Pixel p22 = rangeCheckedPixelVal(row_index + 1, column_index + 1);
+        Pixel p23 = rangeCheckedPixelVal(row_index + 1, column_index + 2);
 
-        uint8_t p30 = rangeCheckedPixelVal(row_index + 2, column_index - 1);
-        uint8_t p31 = rangeCheckedPixelVal(row_index + 2, column_index + 0);
-        uint8_t p32 = rangeCheckedPixelVal(row_index + 2, column_index + 1);
-        uint8_t p33 = rangeCheckedPixelVal(row_index + 2, column_index + 2);
+        Pixel p30 = rangeCheckedPixelVal(row_index + 2, column_index - 1);
+        Pixel p31 = rangeCheckedPixelVal(row_index + 2, column_index + 0);
+        Pixel p32 = rangeCheckedPixelVal(row_index + 2, column_index + 1);
+        Pixel p33 = rangeCheckedPixelVal(row_index + 2, column_index + 2);
 
         double row1 = cubicHermite(p00, p01, p02, p03, column_offset);
         double row2 = cubicHermite(p10, p11, p12, p13, column_offset);

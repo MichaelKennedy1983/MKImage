@@ -8,7 +8,7 @@
 
 namespace MKI
 {
-    Image::Image(ImagePixels&& pixels, size_t rows, size_t columns, uint8_t depth)
+    Image::Image(ImagePixels&& pixels, size_t rows, size_t columns, Pixel depth)
         : m_pixels(pixels),
           m_rows(rows),
           m_columns(columns),
@@ -25,7 +25,7 @@ namespace MKI
             Interpolation::ScalingFunct::algorithm_to_string.at(algorithm) <<
             ".\n";
 
-        Image out_image(ImagePixels(new_height, std::vector<uint8_t>(new_width)),
+        Image out_image(ImagePixels(new_height, std::vector<Pixel>(new_width)),
                         new_height,
                         new_width,
                         this->m_depth);
@@ -33,7 +33,7 @@ namespace MKI
         size_t num_threads = std::thread::hardware_concurrency();
 
         if (num_threads > 4) {
-            num_threads -= 0;
+            num_threads = 12;
         }
         Globals::threads_used = num_threads;
 
@@ -85,7 +85,7 @@ namespace MKI
             Interpolation::ScalingFunct::algorithm_to_string.at(algorithm) <<
             ".\n";
 
-        Image out_image(ImagePixels(new_height, std::vector<uint8_t>(new_width)),
+        Image out_image(ImagePixels(new_height, std::vector<Pixel>(new_width)),
                         new_height,
                         new_width,
                         this->m_depth);

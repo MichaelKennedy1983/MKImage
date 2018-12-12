@@ -156,11 +156,11 @@ namespace MKI
     {
         ImagePixels& pixels = m_images.back().m_pixels;
         pixels = ImagePixels(m_images.back().rows(), 
-            std::vector<uint8_t>(m_images.back().columns()));
+            std::vector<Pixel>(m_images.back().columns()));
 
         for (auto& column : pixels) {
             for (auto& pix : column) {
-                in.read(reinterpret_cast<char*>(&pix), sizeof(uint8_t));
+                in.read(reinterpret_cast<char*>(&pix), sizeof(Pixel));
             }
         }
 
@@ -171,7 +171,7 @@ namespace MKI
     {
         ImagePixels& pixels = m_images.back().m_pixels;
         pixels = ImagePixels(m_images.back().rows(), 
-            std::vector<uint8_t>(m_images.back().columns()));
+            std::vector<Pixel>(m_images.back().columns()));
 
         for (auto& column : pixels) {
             for (auto& pix : column) {
@@ -200,7 +200,7 @@ namespace MKI
 
             for (const auto& column : image().m_pixels) {
                 for (auto pix : column) {
-                    out.write(reinterpret_cast<char*>(&pix), sizeof(uint8_t));
+                    out.write(reinterpret_cast<char*>(&pix), sizeof(Pixel));
                 }
             }
         }
