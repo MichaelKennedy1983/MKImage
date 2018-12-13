@@ -48,7 +48,7 @@ namespace MKI::Interpolation
     /*
         #################### Private Methods #################### 
     */
-   
+
     std::function<Pixel(size_t, size_t, double, double)> ScalingFunct::getAlgorithm()
     {
         switch (m_algorithm) {
@@ -152,94 +152,5 @@ namespace MKI::Interpolation
         double dd = b;
 
         return aa*t*t*t + bb*t*t + cc*t + dd;
-    }
-
-    Pixel ScalingFunct::nearestNeighbor(size_t row, size_t column, double ratio_height, double ratio_width)
-    {
-        size_t row_index = std::floor(row * ratio_height);
-        size_t column_index = std::floor(column * ratio_width);
-
-        Pixel val = m_in_image->pixels().at(row_index).at(column_index);
-        return val;
-    }
-
-    Pixel ScalingFunct::bilinear(size_t row, size_t column, double ratio_height, double ratio_width)
-    {
-        double row_adjust;
-        if (ratio_height > 1.0) {
-            row_adjust = -0.5;
-        } else if (ratio_height < 1.0) {
-            row_adjust = 0.5;
-        } else {
-            row_adjust = 0.0;
-        }
-        double column_adjust;
-        if (ratio_width > 1.0) {
-            column_adjust = -0.5;
-        } else if (ratio_width < 1.0) {
-            column_adjust = 0.5;
-        } else {
-            column_adjust = 0.0;
-        }
-        double row_floating = row * ratio_height + row_adjust;
-        double column_floating = column * ratio_width + column_adjust;
-        size_t row_index = std::floor(row_floating);
-        size_t column_index = std::floor(column_floating);
-        double row_offset = row_floating - row_index;
-        double column_offset = column_floating - column_index;
-
-        Pixel a = rangeCheckedPixelVal(row_index, column_index);
-        Pixel b = rangeCheckedPixelVal(row_index, column_index + 1);
-        Pixel c = rangeCheckedPixelVal(row_index + 1, column_index);
-        Pixel d = rangeCheckedPixelVal(row_index + 1, column_index + 1);
-
-        double val =
-            a * (1 - row_offset) * (1 - column_offset) +
-            b * (1 - row_offset) * column_offset +
-            c * row_offset * (1 - column_offset) +
-            d * row_offset * column_offset;
-
-        Pixel result = std::floor(val);
-        return result;
-    }
-
-    Pixel ScalingFunct::bicubic(size_t row, size_t column, double ratio_height, double ratio_width)
-    {
-        double row_floating = row * ratio_height;
-        double column_floating = column * ratio_width;
-        size_t row_index = std::floor(row_floating);
-        size_t column_index = std::floor(column_floating);
-        double row_offset = row_floating - row_index;
-        double column_offset = column_floating - column_index;
-
-        Pixel p00 = rangeCheckedPixelVal(row_index - 1, column_index - 1);
-        Pixel p01 = rangeCheckedPixelVal(row_index - 1, column_index + 0);
-        Pixel p02 = rangeCheckedPixelVal(row_index - 1, column_index + 1);
-        Pixel p03 = rangeCheckedPixelVal(row_index - 1, column_index + 2);
-
-        Pixel p10 = rangeCheckedPixelVal(row_index + 0, column_index - 1);
-        Pixel p11 = rangeCheckedPixelVal(row_index + 0, column_index + 0);
-        Pixel p12 = rangeCheckedPixelVal(row_index + 0, column_index + 1);
-        Pixel p13 = rangeCheckedPixelVal(row_index + 0, column_index + 2);
-
-        Pixel p20 = rangeCheckedPixelVal(row_index + 1, column_index - 1);
-        Pixel p21 = rangeCheckedPixelVal(row_index + 1, column_index + 0);
-        Pixel p22 = rangeCheckedPixelVal(row_index + 1, column_index + 1);
-        Pixel p23 = rangeCheckedPixelVal(row_index + 1, column_index + 2);
-
-        Pixel p30 = rangeCheckedPixelVal(row_index + 2, column_index - 1);
-        Pixel p31 = rangeCheckedPixelVal(row_index + 2, column_index + 0);
-        Pixel p32 = rangeCheckedPixelVal(row_index + 2, column_index + 1);
-        Pixel p33 = rangeCheckedPixelVal(row_index + 2, column_index + 2);
-
-        double row1 = cubicHermite(p00, p01, p02, p03, column_offset);
-        double row2 = cubicHermite(p10, p11, p12, p13, column_offset);
-        double row3 = cubicHermite(p20, p21, p22, p23, column_offset);
-        double row4 = cubicHermite(p30, p31, p32, p33, column_offset);
-
-        double val = cubicHermite(row1, row2, row3, row4, row_offset);
-        val = std::clamp(val, 0.0, static_cast<double>(m_in_image->depth()));
-
-        return std::floor(val);
     }
 }

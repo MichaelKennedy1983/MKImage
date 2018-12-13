@@ -14,8 +14,6 @@ set_target_properties(MKImageLib PROPERTIES
 )
 target_compile_options(MKImageLib PUBLIC
                        -std=c++17
-                       -lstdc++fs
-                       -pthread
 )
 target_link_libraries(MKImageLib PRIVATE
                       -lstdc++fs

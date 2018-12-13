@@ -33,10 +33,6 @@ namespace MKI::Interpolation
         Pixel rangeCheckedPixelVal(size_t row, size_t column);
         double cubicHermite(double a, double b, double c, double d, double t);
 
-        Pixel nearestNeighbor(size_t row, size_t column, double ratio_height, double ratio_width);
-        Pixel bilinear(size_t row, size_t column, double ratio_height, double ratio_width);
-        Pixel bicubic(size_t row, size_t column, double ratio_height, double ratio_width);
-
     private:
         const Image* m_in_image;
         Image* m_out_image;

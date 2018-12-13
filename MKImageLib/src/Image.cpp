@@ -33,7 +33,9 @@ namespace MKI
         size_t num_threads = std::thread::hardware_concurrency();
 
         if (num_threads > 4) {
-            num_threads = 12;
+            num_threads -= 2;
+        } else {
+            num_threads -= 1;
         }
         Globals::threads_used = num_threads;
 

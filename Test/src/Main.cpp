@@ -38,7 +38,7 @@ int main()
     //                                 MKI::ResizeAlgorithm::bilinear));
     // shuttle_file.save(SHUTTLE_UPSIZE_SAVE, COMMENT);
 
-    MKI::ImageFile lena512_file(LENA_512);
+    MKI::ImageFile lena512_file(LENA_256);
     const MKI::Image& lena512 = lena512_file.image();
     
     auto l512_bl_start = std::chrono::high_resolution_clock::now();
